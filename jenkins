@@ -1,0 +1,94 @@
+pipeline {
+  agent any
+
+environment {
+   ACR_NAME     = "jenkins.azurecr.io"
+   IMAGE_NAME   = "myapp"
+   ACR_CREDS    = credentials('acr-credentials')
+}
+
+  stages {
+    stage('1. Code Pull') {
+      steps {
+         git branch: 'main',
+             credentialsId: 'github-credentials',
+              url: 'https://github.com/Vasudev7476/Azure-Jenkins.git'
+          echo 'Code pulled'
+         }
+        }
+
+        stage('2. Docker Build') {
+          steps {
+            sh ""
+              docker build -t ${ACR_NAME}/${IMAGE_NAME}:${BUILD_NUMBER} .
+              docker tag ${ACR_NAME}/${IMAGE_NAME}:${BUILD_NUMBER} \
+                          $(ACR_NAME}/${IMAGE_NAME}:latest
+            ""
+            echo 'Dcoker image built'
+          }
+         }
+
+        stage('3. ACR Push') {
+           steps {
+             sh ""
+               echo ${ACR_CREDS_PSW} | docker login ${ACR_NAME} \
+                -U  ${ACR_CREDS_USR} --password-stdin
+               docker push ${ACR_NAME}/${IMAGE_NAME}:${BUILD_NUMBER}
+               docker push ${ACR_NAME}/${IMAGE_NAME}:latest
+             ""
+             echo ' Image pushed to ACR'
+            }
+          }
+
+           stage('4. Deploy') {
+              steps {
+                sh ""
+                  docker stops myapp || true
+                  docker rm my app || true
+                  docker run -d \
+                    --name my app \
+                    -p 80:8090 \
+                    ${ACR_NAME}/${IMAGE_NAME}:latest
+                  ""
+                  echo 'App deployed!'
+                 }
+               }
+              }
+
+               post {
+                   success { echo ' Pipeline SUCCESS!' }
+                    failure { echo 'Pipeline FAILED!' }
+                 }
+               }
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
